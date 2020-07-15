@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Amatest | Example</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <header>
+        <a class="branding" href="./">
+            <span class="logo"></span>
+            <span class="type">Amatest</span>
+        </a>
+    </header>
+    <main>
+        
+    </main>
+    <!-- Init -->
+    <script defer type="module">
+        import { TestSuiteComponent, TestComponent, TestResult, TestStatus, startTimer, endTimer, statusClassMap, statusMessageMap } from './amatest.js';
+        
+        import TestSuite_DirtyProxy from './test-suites/test-suite_dirty-proxy.js';
+
+        document.addEventListener('DOMContentLoaded', Init);
+
+        const testSuites = 
+        [
+            TestSuite_DirtyProxy,
+        ];
+
+        async function Init()
+        {
+            let app = new Amatest(document.getElementsByTagName('main')[0]);
+
+            await app.init();
+            app.executeTests();
+        }
+
+        class Amatest
+        {
+            get status()
+            {
+                return this._status;
+            }
+            set status(value)
+            {
+                this._status = statusMessageMap[value];
+                this.$parent.classList.remove(...statusClassMap);
+                this.$parent.classList.add(statusClassMap[value]);
+
+                if(this.$status != null)
+                {
+                    this.$status.innerHTML = this._status;
+                }
+            }
+            
+            constructor($parent)
+            {
+                this.$parent = $parent;
+                this.status = TestStatus.Ready;
+            }
+            async init()
+            {
+                this._registerComponents();
+                this._createElements();
+
+                await this._loadTests();
+
+                await this.generateTests();
+            }
+            _registerComponents()
+            {
+                TestSuiteComponent.register();
+                TestComponent.register();
+            }
+            _createElements()
+            {
+                this.$parent.innerHTML = `<header>
+                    <div class="status"></div>
+                </header>
+                <details class="stats">
+                    <summary>Testing statistics</summary>
+                    <dl>
+                        <div class="elapsed-time">
+                            <dt>Elapsed Time</dt>
+                            <dd class="value"></dd>
+                        </div>
+                    </dl>
+                </details>
+                <div class="content">
+                    <ul class="suites"></ul>
+                </div>`;
+
+                this.$status = this.$parent.querySelector('.status');
+                this.$elapsedTime = this.$parent.querySelector('.elapsed-time');
+                this.$elapsedTime.$value = this.$elapsedTime.querySelector('.value');
+                this.$suites = this.$parent.querySelector('.suites');
+            }
+            async _loadTests()
+            {
+                //TODO: load tests from manifest and do a dynamic import
+            }
+            async generateTests()
+            {
+                for(let i = 0; i < testSuites.length; i++)
+                {
+                    let suiteType = testSuites[i];
+                    let suite = new suiteType();
+                    let $suite = new TestSuiteComponent(suite);
+                    await $suite.init();
+                    this.$suites.appendChild($suite);
+                }
+            }
+
+            async executeTests()
+            {
+                let startTime = startTimer();
+                this.status = TestStatus.InProgress;
+
+                let promises = [];
+                for(let i = 0; i < this.$suites.children.length; i++)
+                {
+                    let $suite = this.$suites.children[i];
+                    promises.push(this.executeTestSuite($suite));
+                }
+
+                await Promise.all(promises);
+
+                let endTime = endTimer(startTime);
+                this.status = TestStatus.Complete;
+                this.$elapsedTime.$value.innerHTML = endTime;
+            }
+            async executeTestSuite($suite)
+            {
+                try
+                {
+                    return $suite.runTests();
+                }
+                catch(exception)
+                {
+                    return new TestResult($suite.record, false, exception);
+                }
+            }
+        }
+
+        
+    </script>
+</body>
+
+</html>
