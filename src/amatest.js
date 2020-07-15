@@ -219,6 +219,8 @@ export class TestSuiteComponent extends BaseComponent(HTMLLIElement)
         super();
         this.record = record;
         this.status = TestStatus.Ready;
+
+        this.setAttribute('is', 'test-suite');
     }
 
     // functionality
@@ -354,6 +356,8 @@ export class TestComponent extends BaseComponent(HTMLLIElement)
         super();
         this.record = record;
         this._createContent();
+
+        this.setAttribute('is', 'test-item');
     }
 
     // functionality

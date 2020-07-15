@@ -3,21 +3,151 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Listibliss | Testing</title>
+    <title>Amatest</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
+    <style>
+        :root
+        {
+            --background-color: #23232b;
+            --foreground-color: #363c47;
+            --alt-background-color: purple;
+            --aside-background-color: gray;
+
+            --foreground-border-color: #000;
+            
+            --approve-color: #81c1a7;
+            --disapprove-color: #a7524c;
+            --warn-color: yellow;
+            --info-color: blue;
+            --disabled-color: #666;
+
+            --font-color: #b7b9c2;
+            --font-highlight-color: #fff;
+        }
+        html
+        {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+        }
+        body
+        {
+            margin: 0;
+            padding: 0;
+            flex:1;
+            background-color: var(--background-color);
+            color: var(--font-color);
+            font-family:Arial, Helvetica, sans-serif;
+        }
+
+        body > header
+        {
+            background-color: var(--foreground-color);
+        }
+
+        body > header .branding
+        {
+            display: flex;
+            margin: 0 auto;
+            padding: .5em 1em;
+            color:inherit;
+            text-decoration: none;
+            box-shadow: 0 2px 10px -2px rgba(0,0,0,.2);
+        }
+
+        main > header
+        {
+            background-color: var(--alt-background-color);
+            margin-top: 2em;
+        }
+
+        main > header .content
+        {
+            padding: .7em 1em;
+            margin: 0 auto;
+            font-size: 1.2em;
+        }
+
+        main > .content
+        {
+
+        }
+
+        main > .content ul
+        {
+            margin: 0;
+            padding: 1em;
+            list-style: none;
+        }
+
+        details.stats
+        {
+            display: block;
+            background-color:var(--aside-background-color);
+            padding-left: 1em;
+            font-size: .7em;
+        }
+        details.stats > summary
+        {
+            font-size: 1rem;
+        }
+        details.stats > dl
+        {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        details.stats > dl > div
+        {
+            display: flex;
+        }
+        details.stats > dl dt
+        {
+            color:var(--font-highlight-color);
+            font-weight: bold;
+            text-align: right;
+            min-width: 100px;
+        }
+        details.stats > dl dt:after
+        {
+            content: ":";
+        }
+        details.stats > dl dd
+        {
+            margin-inline-start: unset;
+            margin-left: 1em;
+        }
+
+        li[is="test-suite"]
+        {
+            background-color: var(--foreground-color);
+            border-radius: 3px;
+            border: solid 1px var(--foreground-border-color);
+            padding: .5em;
+        }
+
+        li[is="test-suite"] > details > summary
+        {
+            display: block;
+            border-bottom: solid 1px var(--foreground-border-color);
+        }
+
+    </style>
     <header>
-        <a class="branding" href="./">
+        <a class="branding" href="https://github.com/the1076/amatest">
             <span class="logo"></span>
             <span class="type">Amatest</span>
         </a>
     </header>
-    <main>
-        
-    </main>
+    <main></main>
     <!-- Init -->
     <script defer type="module">
         import { TestSuiteComponent, TestComponent, TestResult, TestStatus, startTimer, endTimer, statusClassMap, statusMessageMap } from './amatest.js';
@@ -79,17 +209,19 @@
             _createElements()
             {
                 this.$parent.innerHTML = `<header>
-                    <div class="status"></div>
+                    <div class="content">
+                        <div class="status"></div>
+                        <details class="stats">
+                            <summary>Testing statistics</summary>
+                            <dl>
+                                <div class="elapsed-time">
+                                    <dt>Elapsed Time</dt>
+                                    <dd class="value"></dd>
+                                </div>
+                            </dl>
+                        </details>
+                    </div>
                 </header>
-                <details class="stats">
-                    <summary>Testing statistics</summary>
-                    <dl>
-                        <div class="elapsed-time">
-                            <dt>Elapsed Time</dt>
-                            <dd class="value"></dd>
-                        </div>
-                    </dl>
-                </details>
                 <div class="content">
                     <ul class="suites"></ul>
                 </div>`;
