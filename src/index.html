@@ -22,13 +22,13 @@
     <script defer type="module">
         import { TestSuiteComponent, TestComponent, TestResult, TestStatus, startTimer, endTimer, statusClassMap, statusMessageMap } from './amatest.js';
         
-        import TestSuite_DirtyProxy from './test-suites/test-suite_dirty-proxy.js';
+        import TestSuite_Example from './test-suites/test-suite_example.js';
 
         document.addEventListener('DOMContentLoaded', Init);
 
         const testSuites = 
         [
-            TestSuite_DirtyProxy,
+            TestSuite_Example,
         ];
 
         async function Init()
