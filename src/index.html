@@ -164,6 +164,27 @@
             border-bottom: solid 1px #fff;
         }
 
+        main > header .content .message
+        {
+            display: none;
+            font-size: 1.5em;
+            margin: 1em 0;
+            padding: .5em;
+            background-color:var(--info-color);
+            color: var(--disapprove-font-color);
+            border-radius: 3px;
+            border: solid 1px rgba(0,0,0,.5);
+            transition: background-color 200ms linear, color 200ms linear;
+        }
+        main > header .content .message.show
+        {
+            display: block;
+        }
+        main > header .content .message.error
+        {
+            background-color:var(--disapprove-color);
+        }
+
         main > .content ul
         {
             margin: 0;
@@ -234,6 +255,7 @@
         {
             display:flex;
             border-bottom: solid 1px var(--element-border-color);
+            cursor: pointer;
         }
         li[is="test-suite"] > details > summary::-webkit-details-marker
         ,li[is="test-item"] > details > summary::-webkit-details-marker
@@ -253,8 +275,7 @@
         ,li[is="test-item"] > details > summary > .content .description
         {
             flex: 1;
-            padding: 1em 0 1em;
-            margin-right: .5em;
+            padding: 1em;
         }
         li[is="test-suite"] > details > summary > .content .status
         ,li[is="test-item"] > details > summary > .content .status
@@ -314,7 +335,6 @@
             border-radius: 3px;
             min-height: 80px;
         }
-
     </style>
     <header>
         <a class="branding" href="https://github.com/the1076/amatest">
@@ -409,6 +429,7 @@
                             <span class="title">Testing Status:</span>
                             <span class="status"></span>
                         </div>
+                        <div class="message"></div>
                         <details class="stats">
                             <summary>Testing statistics</summary>
                             <dl>
@@ -425,13 +446,85 @@
                 </div>`;
 
                 this.$status = this.$parent.querySelector('.status');
+                this.$message = this.$parent.querySelector('.message');
                 this.$elapsedTime = this.$parent.querySelector('.elapsed-time');
                 this.$elapsedTime.$value = this.$elapsedTime.querySelector('.value');
                 this.$suites = this.$parent.querySelector('.suites');
             }
             async _loadTests()
             {
-                //TODO: load tests from manifest and do a dynamic import
+                try
+                {
+                    this.$message.innerHTML = 'Loading resources from manifest...';
+                    this.$message.classList.remove('error');
+
+                    let manifest = await loadDataResource('./test-suites/manifest.json');
+
+                    let resources = [];
+                    for(let i = 0; i < manifest.length; i++)
+                    {
+                        let resource = manifest[i];
+                        if(Object.prototype.toString.call(resource) === '[object String]')
+                        {
+                            let className = resource;
+                            let path = toKebabCase(className) + '.js';
+                            resource = { className: className, path: path }
+                        }
+                        resources.push(resource);
+                    }
+
+                    let promises = [];
+                    let hasFailures = false;
+                    for(let j = 0; j < resources.length; j++)
+                    {
+                        let resource = resources[j];
+                        let promise = new Promise(async (resolve) =>
+                        {
+                            let testSuite = await this.loadTest(resource);
+                            if(testSuite != null)
+                            {
+                                testSuites.push(testSuite);
+                            }
+                            else
+                            {
+                                hasFailures = true;
+                            }
+                            resolve();
+                        });
+                        promises.push(promise);
+                    }
+
+                    let results = await Promise.all(promises);
+
+                    if(!hasFailures)
+                    {
+                        this.$message.classList.remove('show', 'error');
+                        this.$message.classList.innerHTML = '';
+                    }
+                }
+                catch(exception)
+                {
+                    console.error(exception);
+                    this.$message.innerHTML = 'An error occurred while loading the test suites manifest. See dev console for details.';
+                    this.$message.classList.add('error');
+                    this.$message.classList.add('show');
+                }
+            }
+            async loadTest(resource)
+            {
+                try
+                {
+                    let module = await import('./test-suites/' + resource.path);
+                    return module.default;
+                }
+                catch(exception)
+                {
+                    console.error(exception);
+                    this.$message.innerHTML = 'An error occurred while loading one or more test suites. See dev console for details.';
+                    this.$message.classList.add('error');
+                    this.$message.classList.add('show');
+                    return null;
+                }
             }
             async generateTests()
             {
@@ -509,6 +602,44 @@
             }
         }
 
+        async function loadDataResource(path)
+        {
+            let payload = await fetch(path);
+            if(payload == null)
+            {
+                throw new Error('Unable to find requested data resource.');
+            }
+
+            return await payload.json();
+        }
+
+        function toKebabCase(value)
+        {
+            let isFirst = true;
+            value = value.replace(/\\.+$/, "") //trim trailing periods
+                    .replace(/[^\w\d\s]/g, '') //replace symbols
+                    .replace(/\s+/g, '-') //switch spaces for dashes
+                    .replace(/[A-Z]+/g, function ($1, offset, string) //replace capitals with dash then character
+                    {
+                        if (isFirst == true)
+                        {
+                            isFirst = false;
+                            return $1;
+                        }
+
+                        let previousCharacter = string.substring(string.indexOf($1) - 1, string.indexOf($1));
+
+                        if (previousCharacter == '-' || previousCharacter == '_')
+                        {
+                            return $1;
+                        }
+
+                        return '-' + $1;
+                    })
+                    .toLowerCase(); //make the whole thing lowercase
+            
+            return value;
+        }
         
     </script>
 </body>
