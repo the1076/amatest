@@ -245,19 +245,23 @@ export class TestSuiteComponent extends BaseComponent(HTMLLIElement)
     {
         let content = `<details open="true">
             <summary title="Expand to see individual tests">
-                <span class="description">${this.record.description}</span>
-                <span class="status">${this.status}</span>
+                <div class="content">
+                    <div class="description">${this.record.description}</div>
+                    <div class="status">${this.status}</div>
+                </div>
             </summary>
-            <details class="stats">
-                <summary>Testing statistics</summary>
-                <dl>
-                    <div class="elapsed-time">
-                        <dt>Elapsed Time</dt>
-                        <dd class="value"></dd>
-                    </div>
-                </dl>
-            </details>
             <ul class="tests"></ul>
+            <footer>
+                <details class="stats">
+                    <summary>Testing statistics</summary>
+                    <dl>
+                        <div class="elapsed-time">
+                            <dt>Elapsed Time</dt>
+                            <dd class="value"></dd>
+                        </div>
+                    </dl>
+                </details>
+            </footer>
         </details>`;
 
         this.innerHTML = content;
@@ -306,10 +310,12 @@ export class TestSuiteComponent extends BaseComponent(HTMLLIElement)
             if(failed != null)
             {
                 this.status = TestStatus.Failed;
+                return new TestResult(this.record, false);
             }
             else
             {
                 this.status = TestStatus.Passed;
+                return new TestResult(this.record, true);
             }
         }
         catch(exception)
@@ -365,19 +371,30 @@ export class TestComponent extends BaseComponent(HTMLLIElement)
     {
         let content = `<details>
             <summary title="Expand to see JSON of result data">
-                <span class="description">${this.record.description}</span>
-                <span class="status"></span>
+                <div class="content">
+                    <span class="description">${this.record.description}</span>
+                    <span class="status"></span>
+                </div>
             </summary>
-            <details class="stats">
-                <summary>Testing statistics</summary>
-                <dl>
-                    <div class="elapsed-time">
-                        <dt>Elapsed Time</dt>
-                        <dd class="value"></dd>
-                    </div>
-                </dl>
-            </details>
-            <textarea class="data"></textarea>
+            <div class="content">
+                <label class="field-group">
+                    <span class="title">Test Data:</span>
+                    <span class="content">
+                        <textarea class="data"></textarea>
+                    </span>
+                </label>
+            </div>
+            <footer>
+                <details class="stats">
+                    <summary>Testing statistics</summary>
+                    <dl>
+                        <div class="elapsed-time">
+                            <dt>Elapsed Time</dt>
+                            <dd class="value"></dd>
+                        </div>
+                    </dl>
+                </details>
+            </footer>
         </details>`;
 
         this.innerHTML = content;
@@ -467,7 +484,7 @@ export function startTimer()
     let startTime = new Date().getTime();
     return startTime;
 }
-export function endTimer(startTime)
+export function getElapsedTime(startTime)
 {
     if(startTime == null)
     {
@@ -478,6 +495,11 @@ export function endTimer(startTime)
     let delta = endTime - startTime;
 
     return formatTime(delta);
+}
+export function endTimer(startTime)
+{
+    let time = getElapsedTime(startTime);
+    return time;
 }
 
 function formatTime(delta)
