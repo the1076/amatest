@@ -15,8 +15,6 @@ export default class TestSuite_DirtyProxy extends TestSuite
 
 function Proxy_AtomicTypeTest(test, param1)
 {
-    // console.log(test, param1);
-    throw new Error('Butts and butts');
     let source = { a: true, b: 1, c: "hello", d: ["one", "two", "three"], e: { four: 4, five: "five", six: () => { console.log("Hello world"); } } };
     let target = new Proxy(source, DirtyProxy());
 
