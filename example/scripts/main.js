@@ -4,10 +4,15 @@ export default class App
 {
     constructor()
     {
-        let myObject = new SomeObject();
-        console.log(myObject);
-        myObject.hello = 'mundo';
-        console.log(myObject);
+        this.myObject = new SomeObject();
+        console.log(this.myObject);
+        this.myObject.hello = 'mundo';
+        console.log(this.myObject);
+    }
+
+    ping()
+    {
+        return 'pong';
     }
 }
 

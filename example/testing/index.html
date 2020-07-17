@@ -373,6 +373,9 @@
 
         async function Init()
         {
+            window.__hasSandboxListener = false;
+            window.__sandboxes = [];
+
             let app = new Amatest(document.getElementsByTagName('main')[0]);
 
             await app.init();
@@ -464,6 +467,10 @@
                             let className = resource;
                             let path = toKebabCase(className) + '.js';
                             resource = { className: className, path: path }
+                        }
+                        if(resource.className.startsWith("//"))
+                        {
+                            continue;
                         }
                         resources.push(resource);
                     }

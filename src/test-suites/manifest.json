@@ -1,4 +1,5 @@
 [
     { "className": "TestSuite_ExampleTwo", "path": "test-suite_example-two.js" },
-    "TestSuite_ExampleThree"
+    "TestSuite_ExampleThree",
+    "//TestSuite_iframe"
 ]

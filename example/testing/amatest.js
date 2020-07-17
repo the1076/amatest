@@ -115,9 +115,172 @@ export class TestSuite
         this.tests.splice(this.tests.indexOf(test), 1);
     }
 
-    openIFrame(url)
+    openSandbox(url)
     {
-        //TODO: create an iframe, open url, inject script, hook up messaging, return friendly object
+        return new Promise((resolve, reject) =>
+        {
+            if(window.__hasSandboxListener != true)
+            {
+                window.addEventListener("message", (event) =>
+                {
+                    
+                    if(event.data == null)
+                    {
+                        console.log(event);
+                        throw new Error('Event data is null.');
+                    }
+
+                    let data = JSON.parse(event.data);
+                    if(data.key == null || data.key.trim() == '')
+                    {
+                        console.log(event);
+                        throw new Error('Event data has unknown key.');
+                    }
+
+                    let sandbox;
+                    for(let i = 0; i < window.__sandboxes.length; i++)
+                    {
+                        sandbox = window.__sandboxes[i];
+                        if(sandbox.contentWindow.__sandboxKey == data.key)
+                        {
+                            break;
+                        }
+                    }
+
+                    if(sandbox == null)
+                    {
+                        console.log('Message event from unknown sandbox: ', event);
+                        return;
+                    }
+
+                    if(data.type == 'HANDSHAKE')
+                    {
+                        if(sandbox.__isReady != null)
+                        {
+                            sandbox.__isReady();
+                        }
+                    }
+                    else
+                    {
+                        let resolver = sandbox.resolvers[data.messageKey];
+                        if(data.type == 'ERROR')
+                        {
+                            resolver.reject(data);
+                        }
+                        else
+                        {
+                            if(resolver != null)
+                            {
+                                resolver.resolve(data);
+                            }
+                        }
+                    }
+                }, false);
+                window.__hasSandboxListener = true;
+            }
+
+            let sandboxKey = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16) );
+
+            let iframe = document.createElement('iframe');
+            iframe.testSuite = this;
+            iframe.resolvers = {};
+            window.__sandboxes.push(iframe);
+            iframe.__isReady = () =>
+            {
+                resolve(iframe);
+            }
+            iframe.execute = function(toExecute)
+            {
+                return new Promise((resolve, reject) =>
+                {
+                    try
+                    {
+                        let messageKey = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16) );
+                        iframe.resolvers[messageKey] = { resolve: resolve, reject: reject };
+
+                        iframe.contentWindow.postMessage(JSON.stringify({ key: sandboxKey, type: 'EXECUTE', message: toExecute, messageKey: messageKey }));
+                    }
+                    catch(exception)
+                    {
+                        reject(exception);
+                    }
+                });
+            }
+           iframe.onload = () =>
+            {
+                try
+                {
+                    iframe.contentWindow.__sandboxKey = sandboxKey;
+                    iframe.contentWindow.eval(`window.SandboxResponseMessage = function(type, message, messageKey)
+                        {
+                            this.key = window.__sandboxKey;
+                            this.messageKey = messageKey;
+                            this.type = type.toUpperCase() || "MESSAGE";
+                            this.message = message;
+                        }
+    
+                        window.__sendParentWindowMessage = function (target, messageObject)
+                        {
+                            let message = JSON.stringify(messageObject);
+                            target.postMessage(message, "*");
+                        }
+    
+                        window.addEventListener("message", function(event)
+                        {
+                            if(event.data == null)
+                            {
+                                window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Error", "E01"));
+                                return;
+                            }
+    
+                            let data = JSON.parse(event.data);
+                            
+                            if(data.type == null || data.type == "UNKNOWN")
+                            {
+                                window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Error", "E02: " + JSON.stringify(event.data), data.messageKey));
+                                return;
+                            }
+    
+                            if(data.key != window.__sandboxKey)
+                            {
+                                window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Error", "E03: " + event.data.key, data.messageKey));
+                                return;
+                            }
+    
+                            if(data.type == "EXECUTE")
+                            {
+                                try
+                                {
+                                    let result = window.eval(data.message);
+                                    window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Message", result, data.messageKey));
+                                }
+                                catch(exception)
+                                {
+                                    window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Error", exception.stack, data.messageKey));
+                                }
+                                return;
+                            }
+    
+                            window.__sendParentWindowMessage(event.source, new window.SandboxResponseMessage("Error", "E02: " + JSON.stringify(event.data), data.messageKey));
+                            
+                        }, false);
+    
+                        __sendParentWindowMessage(window.parent, new window.SandboxResponseMessage("Handshake", window.__sandboxKey));
+                        
+                        //console.log('completed sandbox injection');
+                    `);
+                }
+                catch(exception)
+                {
+                    reject(exception);
+                }
+            };
+
+            iframe.src = url;
+
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe); // have to do this to make the onload event trigger;
+        });
     }
 }
 
