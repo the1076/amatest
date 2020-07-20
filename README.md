@@ -23,3 +23,5 @@ Run the files in the `src` folder. Create any test suites following the example 
 - A sandbox instance will take any arbitrary code in it's `execute` function. The code will run as soon as the execute function is called, unless the page hasn't loaded, in which case the code will be called directly AFTER the page load.
 - If you use the wrong url in the sandbox, but the url still points to a document, you'll get a failure in your test, rather than an exception for a bad url. Even if that document is a 404 page. I have to learn how to dig that out of an `<iframe>` tag before I can fix that. Best to be extra careful at the moment.
 - Cross-origin urls are not currently supported for testing.
+- When using a sandbox, the target app must allow the `unsafe-eval` policy. As I do my testing locally, I just drop this meta tag into the app index.html: `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'">`.  
+  At the moment, there is no API to handle creating a nonce-based policy, but it's possible by editing the `openSandbox` function.
