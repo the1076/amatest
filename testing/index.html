@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Amatest</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <style>
+        :root
+        {
+
+            --brand-color: linear-gradient(2deg, #02b395, #9cf7ab 70%);
+            
+            --page-background-color: #23232b;
+            --page-font-color: #b1b1b5;
+
+            --element-background-color: #27293d;
+            --element-border-color: rgba(0,0,0,.15);
+            --element-font-color: #b1b1b5;
+
+            --test-footer-background-color: rgba(0,0,0,.3);
+            --test-footer-border-color: rgba(0,0,0,.2);
+            --test-footer-font-color: #FFF;
+            
+            --approve-color: #6fab2e;
+            --approve-font-color: #fff;
+            --disapprove-color: #c5583c;
+            --disapprove-font-color: #fff;
+            --warn-color: #ffb548;
+            --warn-font-color: #fff;
+            --info-color: #007acc;
+            --info-font-color: #dcecf7;
+            --aside-color: #6672ff;
+            --aside-font-color: #fff;
+            --disabled-color: #666;
+            --disabled-font-color: rgb(163, 161, 161);
+        }
+        html
+        {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+        }
+        body
+        {
+            margin: 0;
+            padding: 0;
+            flex:1;
+            background-color: var(--page-background-color);
+            color: var(--page-font-color);
+            font-family:Arial, Helvetica, sans-serif;
+            text-shadow: 0px 1px 1px rgba(0,0,0,.5);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        body > header
+        {
+            color: #fff;
+        }
+
+        body > header > .branding
+        {
+            display: inline-flex;
+            padding: .5em 1em;
+            margin: 1em 1em 0 2em;
+            color:inherit;
+            text-decoration: none;
+            box-shadow: 0 2px 10px -2px rgba(0,0,0,.2);
+            background: var(--brand-color);
+            box-shadow: 3px 3px 10px 2px rgba(0,0,0,.8);
+            transform: skewX(-15deg);
+        }
+        body > header > .branding .content
+        {
+            transform: skewX(15deg);
+            display: flex;
+            align-items: center;
+            font-size: 1.7em
+        }
+
+        body > header > .branding .content .logo
+        {
+            transform: skewX(-15deg);
+            padding: .3em .5em;
+            background-color: rgba(0,0,0,.2);
+            display: flex;
+            align-items: center;
+            margin-right:.3em;
+        }
+        body > header > .branding .content .logo .icon
+        {
+            width: 32px;
+            height: auto;
+            transform: skewX(15deg);
+            margin-left:-.05em;
+        }
+        body > header > .branding .content .logo .icon .main
+        {
+            fill: #fff;
+        }
+
+        main > header
+        {
+            background: var(--aside-color) linear-gradient(1deg, rgba(0,0,0,.5), rgba(255,255,255,0));
+            margin-top: 1em;
+            border-top: solid 1px rgba(0,0,0,.8);
+            border-bottom: solid 1px rgba(0,0,0,.8);
+        }
+
+        main > header .content
+        {
+            padding: .7em 1em;
+            margin: 0 auto;
+            color: #fff;
+        }
+        
+        main > header .content .status-wrapper
+        {
+            margin-bottom: .5em;
+            font-size: 2em;
+            color: #fff;
+            display: flex;
+        }
+        main > header .content .status-wrapper .title
+        {
+            background-color: var(--element-background-color);
+            border: solid 1px rgba(0,0,0,.5);
+            border-right: none;
+            border-top-left-radius: 3px;
+            border-bottom-left-radius: 3px;
+            padding: .25em;
+            display: block;
+        }
+        main > header .content .status-wrapper .status
+        {
+            background-color: var(--info-color);
+            border: solid 1px rgba(0,0,0,.5);
+            padding: .25em;
+            transition: background-color 200ms linear, color 200ms linear;
+            display: block;
+            border-top-right-radius: 3px;
+            border-bottom-right-radius: 3px;
+            min-width: 170px;
+            text-align: center;
+        }
+        main.unknown > header .content .status-wrapper .status { background-color: var(--disabled-color); color: var(--disabled-font-color); }
+        main.ready > header .content .status-wrapper .status { background-color: var(--info-color); color: var(--info-font-color); }
+        main.inprogress > header .content .status-wrapper .status { background-color: var(--warn-color); color: var(--warn-font-color); }
+        main.passed > header .content .status-wrapper .status { background-color: var(--approve-color); color: var(--approve-font-color); }
+        main.failed > header .content .status-wrapper .status { background-color: var(--disapprove-color); color: var(--disapprove-font-color); }
+        main.completed > header .content .status-wrapper .status { background-color: var(--aside-color); color: var(--aside-font-color); }
+        
+        main > header .content summary
+        {
+            padding: .5em 0;
+            border-bottom: solid 1px #fff;
+        }
+
+        main > header .content .message
+        {
+            display: none;
+            font-size: 1.5em;
+            margin: 1em 0;
+            padding: .5em;
+            background-color:var(--info-color);
+            color: var(--disapprove-font-color);
+            border-radius: 3px;
+            border: solid 1px rgba(0,0,0,.5);
+            transition: background-color 200ms linear, color 200ms linear;
+        }
+        main > header .content .message.show
+        {
+            display: block;
+        }
+        main > header .content .message.error
+        {
+            background-color:var(--disapprove-color);
+        }
+
+        main > .content ul
+        {
+            margin: 0;
+            padding: 1em;
+            list-style: none;
+        }
+
+        details.stats
+        {
+            display: block;
+            font-size: .7em;
+        }
+        details.stats > summary
+        {
+            font-size: 1rem;
+        }
+        details.stats > dl
+        {
+            margin: 1em 0 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        details.stats > dl > div
+        {
+            display: flex;
+            padding: .8em;
+            border-radius: 3px;
+        }
+        details.stats > dl > div:hover
+        {
+            background-color: rgba(0,0,0,.5);
+        }
+        details.stats > dl dt
+        {
+            color:var(--font-highlight-color);
+            font-weight: bold;
+            text-align: right;
+            min-width: 100px;
+        }
+        details.stats > dl dt:after
+        {
+            content: ":";
+        }
+        details.stats > dl dd
+        {
+            margin-inline-start: unset;
+            margin-left: 1em;
+        }
+
+        li[is="test-suite"]
+        {
+            background-color: var(--element-color);
+            border-radius: 3px;
+            border: solid 1px #222;
+            color: var(--element-font-color);
+            box-shadow: 2px 2px 10px -2px rgba(0,0,0,.8);
+            transition: background-color 200ms linear, color 200ms linear;
+            margin-bottom: 1.5em;
+        }
+        li[is="test-suite"].unknown, li[is="test-item"].unknown { background-color: var(--disabled-color); color: var(--disabled-font-color); }
+        li[is="test-suite"].ready, li[is="test-item"].ready { background-color: var(--info-color); color: var(--info-font-color); }
+        li[is="test-suite"].inprogress, li[is="test-item"].inprogress { background-color: var(--warn-color); color: var(--warn-font-color); }
+        li[is="test-suite"].passed, li[is="test-item"].passed { background-color: var(--approve-color); color: var(--approve-font-color); }
+        li[is="test-suite"].failed, li[is="test-item"].failed { background-color: var(--disapprove-color); color: var(--disapprove-font-color); }
+        li[is="test-suite"].completed, li[is="test-item"].completed { background-color: var(--aside-color); color: var(--aside-font-color); }
+        li[is="test-suite"] > details > summary
+        ,li[is="test-item"] > details > summary
+        {
+            display:flex;
+            border-bottom: solid 1px var(--element-border-color);
+            cursor: pointer;
+        }
+        li[is="test-suite"] > details > summary::-webkit-details-marker
+        ,li[is="test-item"] > details > summary::-webkit-details-marker
+        {
+            align-self: center;
+            margin-bottom: 3px;
+            padding: 1em 0 1em 1em;
+        }
+        li[is="test-suite"] > details > summary > .content
+        ,li[is="test-item"] > details > summary > .content
+        {
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+        }
+        li[is="test-suite"] > details > summary > .content .description
+        ,li[is="test-item"] > details > summary > .content .description
+        {
+            flex: 1;
+            padding: 1em;
+        }
+        li[is="test-suite"] > details > summary > .content .status
+        ,li[is="test-item"] > details > summary > .content .status
+        {
+            border-left: solid 1px var(--element-border-color);
+            padding: 1em;
+            font-weight: bold;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        li[is="test-suite"] > details > footer
+        ,li[is="test-item"] > details > footer
+        {
+            background-color: var(--test-footer-background-color);
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+            border-top: solid 1px var(--test-footer-border-color);
+            padding: .5em 1em;
+        }
+
+        li[is="test-item"]
+        {
+            background-color: var(--element-color);
+            border-radius: 3px;
+            border: solid 1px #222;
+            color: var(--element-font-color);
+            box-shadow: 1px 1px 10px -3px rgba(0,0,0,.5);
+            transition: background-color 200ms linear, color 200ms linear;
+            margin-bottom: 1em;
+        }
+        li[is="test-item"] > details > .content
+        {
+            display: flex;
+            padding: 1em;
+        }
+        li[is="test-item"] > details > .content .field-group
+        {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        li[is="test-item"] > details > .content .field-group .title
+        {
+            margin-bottom: .3em;
+        }
+        li[is="test-item"] > details > .content .field-group .content
+        {
+            flex: 1;
+        }
+        li[is="test-item"] > details > .content .field-group .content textarea
+        {
+            width: 100%;
+            background: rgba(255,255,255,.3);
+            border: solid 1px rgba(0,0,0,.4);
+            border-radius: 3px;
+            min-height: 80px;
+        }
+    </style>
+    <header>
+        <a class="branding" href="https://github.com/the1076/amatest">
+            <span class="content">
+                <span class="logo">
+                    <svg
+                        class="icon"
+                        xmlns:dc="http://purl.org/dc/elements/1.1/"
+                        xmlns:cc="http://creativecommons.org/ns#"
+                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                        xmlns:svg="http://www.w3.org/2000/svg"
+                        xmlns="http://www.w3.org/2000/svg"
+                        version="1.1"
+                        viewBox="0 0 122.44688 121.70834"
+                        height="121.70834mm"
+                        width="122.44688mm">
+                        <g transform="translate(-18.151558,-32.883925)">
+                            <path class="main"
+                            style="fill-rule:evenodd;"
+                            d="m 62.365962,32.883925 a 3.7216051,3.7216051 0 0 0 -3.51503,2.49907 L 18.255992,152.09319 a 1.8810254,1.8810254 0 0 0 1.77663,2.49907 h 18.76733 a 3.7215937,3.7215937 0 0 0 3.51504,-2.49907 l 3.38894,-9.74309 a 3.7215937,3.7215937 0 0 1 3.51503,-2.49907 h 60.312078 a 3.7215961,3.7215961 0 0 1 3.51503,2.49907 l 3.38894,9.74309 a 3.7215961,3.7215961 0 0 0 3.51503,2.49907 h 18.76733 a 1.8810253,1.8810253 0 0 0 1.77664,-2.49907 L 99.899072,35.382995 a 3.7216054,3.7216054 0 0 0 -3.51503,-2.49907 z m 19.27686,5.66942 a 1.8898808,1.8898808 0 0 1 1.8898,1.89032 1.8898808,1.8898808 0 0 1 -1.8898,1.88981 1.8898808,1.8898808 0 0 1 -1.88981,-1.88981 1.8898808,1.8898808 0 0 1 1.88981,-1.89032 z m -7.80469,7.18199 a 3.0238097,4.3467263 0 0 1 0.0186,0 3.0238097,4.3467263 0 0 1 3.02358,4.3465 3.0238097,4.3467263 0 0 1 -3.02358,4.34651 3.0238097,4.3467263 0 0 1 -3.02411,-4.34651 3.0238097,4.3467263 0 0 1 3.0055,-4.3465 z m 10.06863,11.79256 a 1.5119048,1.7008927 0 0 1 5.3e-4,0 1.5119048,1.7008927 0 0 1 0.004,0 1.5119048,1.7008927 0 0 1 1.51205,1.70119 1.5119048,1.7008927 0 0 1 -1.51205,1.700671 1.5119048,1.7008927 0 0 1 -1.51205,-1.700671 1.5119048,1.7008927 0 0 1 1.50791,-1.70119 z m -13.01057,6.90242 h 16.95814 c 0.32734,0 0.59272,0.26539 0.59272,0.59273 v 24.776267 c 0,0.39157 0.0742,0.77932 0.21911,1.14308 L 103.3464,122.49498 c 0.10515,0.26391 -0.0895,0.55087 -0.37362,0.55087 H 55.777212 c -0.28412,0 -0.47877,-0.28696 -0.37362,-0.55087 l 14.68076,-31.552588 c 0.14491,-0.36376 0.21911,-0.75151 0.21911,-1.14308 V 65.023045 c 0,-0.32734 0.26538,-0.59273 0.59273,-0.59273 z m 12.15739,2.74764 a 2.6726952,3.2072345 0 0 0 -2.64583,3.207041 2.6726952,3.2072345 0 0 0 2.67271,3.207041 2.6726952,3.2072345 0 0 0 2.6727,-3.207041 2.6726952,3.2072345 0 0 0 -2.6727,-3.207041 2.6726952,3.2072345 0 0 0 -0.0269,0 z m -8.41499,6.18877 a 1.6036172,1.8040693 0 0 0 -1.60352,1.80402 1.6036172,1.8040693 0 0 0 1.60352,1.804029 1.6036172,1.8040693 0 0 0 1.60352,-1.804029 1.6036172,1.8040693 0 0 0 -1.60352,-1.80402 z m 6.76031,14.991847 a 1.0690781,1.2695302 0 0 0 -1.05471,1.26969 1.0690781,1.2695302 0 0 0 1.06918,1.26917 1.0690781,1.2695302 0 0 0 1.06919,-1.26917 1.0690781,1.2695302 0 0 0 -1.06919,-1.26969 1.0690781,1.2695302 0 0 0 -0.0145,0 z m -11.68197,16.370568 a 2.5390604,2.6726952 0 0 0 -2.38745,1.76372 87.879462,20.17448 0 0 1 -3.20756,-0.11575 l -6.97632,14.89728 c -0.0975,0.24315 0.0828,0.50746 0.34624,0.50746 h 43.766318 c 0.26344,-1e-5 0.44374,-0.26431 0.34623,-0.50746 l -6.975798,-14.89728 a 87.879462,20.17448 0 0 1 -15.25385,0.30644 87.879462,20.17448 0 0 1 -7.2316,-0.0687 2.5390604,2.6726952 0 0 0 -2.42621,-1.88567 z" />
+                        </g>
+                    </svg>
+                </span>
+                <span class="type">Amatest</span>
+            </span>
+        </a>
+    </header>
+    <main></main>
+    <!-- Init -->
+    <script defer type="module">
+        import { TestSuiteComponent, TestComponent, TestResult, TestStatus, startTimer, getElapsedTime, endTimer, statusClassMap, statusMessageMap } from './amatest.js';
+
+        document.addEventListener('DOMContentLoaded', Init);
+
+        const testSuites =  [];
+
+        async function Init()
+        {
+            window.__hasSandboxListener = false;
+            window.__sandboxes = [];
+
+            let app = new Amatest(document.getElementsByTagName('main')[0]);
+
+            await app.init();
+            app.executeTests();
+        }
+
+        class Amatest
+        {
+            get status()
+            {
+                return this._status;
+            }
+            set status(value)
+            {
+                this._status = statusMessageMap[value];
+                this.$parent.classList.remove(...statusClassMap);
+                this.$parent.classList.add(statusClassMap[value]);
+
+                if(this.$status != null)
+                {
+                    this.$status.innerHTML = this._status;
+                }
+            }
+            
+            constructor($parent)
+            {
+                this.$parent = $parent;
+                this.status = TestStatus.Ready;
+            }
+            async init()
+            {
+                this._registerComponents();
+                this._createElements();
+
+                await this._loadTests();
+
+                await this.generateTests();
+            }
+            _registerComponents()
+            {
+                TestSuiteComponent.register();
+                TestComponent.register();
+            }
+            _createElements()
+            {
+                this.$parent.innerHTML = `<header>
+                    <div class="content">
+                        <div class="status-wrapper">
+                            <span class="title">Testing Status:</span>
+                            <span class="status"></span>
+                        </div>
+                        <div class="message"></div>
+                        <details class="stats">
+                            <summary>Testing statistics</summary>
+                            <dl>
+                                <div class="elapsed-time">
+                                    <dt>Elapsed Time</dt>
+                                    <dd class="value"></dd>
+                                </div>
+                            </dl>
+                        </details>
+                    </div>
+                </header>
+                <div class="content">
+                    <ul class="suites"></ul>
+                </div>`;
+
+                this.$status = this.$parent.querySelector('.status');
+                this.$message = this.$parent.querySelector('.message');
+                this.$elapsedTime = this.$parent.querySelector('.elapsed-time');
+                this.$elapsedTime.$value = this.$elapsedTime.querySelector('.value');
+                this.$suites = this.$parent.querySelector('.suites');
+            }
+            async _loadTests()
+            {
+                try
+                {
+                    this.$message.innerHTML = 'Loading resources from manifest...';
+                    this.$message.classList.remove('error');
+
+                    let manifest = await loadDataResource('./test-suites/manifest.json');
+
+                    let resources = [];
+                    for(let i = 0; i < manifest.length; i++)
+                    {
+                        let resource = manifest[i];
+                        if(Object.prototype.toString.call(resource) === '[object String]')
+                        {
+                            let className = resource;
+                            let path = toKebabCase(className) + '.js';
+                            resource = { className: className, path: path }
+                        }
+                        if(resource.className.startsWith("//"))
+                        {
+                            continue;
+                        }
+                        resources.push(resource);
+                    }
+
+                    let promises = [];
+                    let hasFailures = false;
+                    for(let j = 0; j < resources.length; j++)
+                    {
+                        let resource = resources[j];
+                        let promise = new Promise(async (resolve) =>
+                        {
+                            let testSuite = await this.loadTest(resource);
+                            if(testSuite != null)
+                            {
+                                testSuites.push(testSuite);
+                            }
+                            else
+                            {
+                                hasFailures = true;
+                            }
+                            resolve();
+                        });
+                        promises.push(promise);
+                    }
+
+                    let results = await Promise.all(promises);
+
+                    if(!hasFailures)
+                    {
+                        this.$message.classList.remove('show', 'error');
+                        this.$message.classList.innerHTML = '';
+                    }
+                }
+                catch(exception)
+                {
+                    console.error(exception);
+                    this.$message.innerHTML = 'An error occurred while loading the test suites manifest. See dev console for details.';
+                    this.$message.classList.add('error');
+                    this.$message.classList.add('show');
+                }
+            }
+            async loadTest(resource)
+            {
+                try
+                {
+                    let module = await import('./test-suites/' + resource.path);
+                    return module.default;
+                }
+                catch(exception)
+                {
+                    console.error(exception);
+                    this.$message.innerHTML = 'An error occurred while loading one or more test suites. See dev console for details.';
+                    this.$message.classList.add('error');
+                    this.$message.classList.add('show');
+                    return null;
+                }
+            }
+            async generateTests()
+            {
+                for(let i = 0; i < testSuites.length; i++)
+                {
+                    let suiteType = testSuites[i];
+                    let suite = new suiteType();
+                    let $suite = new TestSuiteComponent(suite);
+                    await $suite.init();
+                    this.$suites.appendChild($suite);
+                }
+            }
+
+            async executeTests()
+            {
+                this.startTimer();
+                this.status = TestStatus.InProgress;
+
+                let promises = [];
+                for(let i = 0; i < this.$suites.children.length; i++)
+                {
+                    let $suite = this.$suites.children[i];
+                    promises.push(this.executeTestSuite($suite));
+                }
+
+                let results = await Promise.all(promises);
+
+                let failed = results.find((value) =>
+                {
+                    return value.success == false;
+                });
+        
+                if(failed != null)
+                {
+                    this.status = TestStatus.Failed;
+                }
+                else
+                {
+                    this.status = TestStatus.Passed;
+                }
+
+                this.endTimer();
+            }
+            async executeTestSuite($suite)
+            {
+                try
+                {
+                    return $suite.runTests();
+                }
+                catch(exception)
+                {
+                    return new TestResult($suite.record, false, exception);
+                }
+            }
+
+            startTimer()
+            {
+                this.startTime = startTimer();
+                this.timerInterval = setInterval(this.updateElapsedTime.bind(this), 10);
+            }
+            endTimer()
+            {
+                this.updateElapsedTime(this.startTime);
+                clearInterval(this.timerInterval);
+            }
+
+            updateElapsedTime()
+            {
+                if(this.startTime == null)
+                {
+                    return;
+                }
+                let currentTime = getElapsedTime(this.startTime);
+                this.$elapsedTime.$value.innerHTML = currentTime;
+            }
+        }
+
+        async function loadDataResource(path)
+        {
+            let payload = await fetch(path);
+            if(payload == null)
+            {
+                throw new Error('Unable to find requested data resource.');
+            }
+
+            return await payload.json();
+        }
+
+        function toKebabCase(value)
+        {
+            let isFirst = true;
+            value = value.replace(/\\.+$/, "") //trim trailing periods
+                    .replace(/[^\w\d\s]/g, '') //replace symbols
+                    .replace(/\s+/g, '-') //switch spaces for dashes
+                    .replace(/[A-Z]+/g, function ($1, offset, string) //replace capitals with dash then character
+                    {
+                        if (isFirst == true)
+                        {
+                            isFirst = false;
+                            return $1;
+                        }
+
+                        let previousCharacter = string.substring(string.indexOf($1) - 1, string.indexOf($1));
+
+                        if (previousCharacter == '-' || previousCharacter == '_')
+                        {
+                            return $1;
+                        }
+
+                        return '-' + $1;
+                    })
+                    .toLowerCase(); //make the whole thing lowercase
+            
+            return value;
+        }
+        
+    </script>
+</body>
+
+</html>
