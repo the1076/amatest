@@ -7,6 +7,9 @@ This is a simplified apparatus for advanced users to do quick "workbench" testin
 # Getting Started
 Run the files in the `src` folder. Create any test suites following the example in the test-suites `folder`.
 
+# Example
+[See an example here.](https://the1076.github.io/amatest/testing)
+
 # Notes
 - TestSuites must extend the `TestSuite` class.
 - All tests must return a `TestResult` instance.
