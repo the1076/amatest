@@ -7,7 +7,7 @@ export default class TestSuite_iframe extends TestSuite
     {
         this.description = 'App - Functional Tests:';
 
-        let sandbox = await this.openSandbox('../../index.html');
+        let sandbox = await this.openSandbox('../index.html');
 
         this.addTest(new Test('The "ping" function should return the value "pong"', IFrameTest, [sandbox]));
     }
